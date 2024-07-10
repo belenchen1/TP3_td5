@@ -49,6 +49,10 @@ def vecino_mas_cercano(matriz):
       nodos_visitados.append(min[0])
       nodo_0 = min[0]
       costo_viaje += min[1]
+      
+      costo_viaje += matriz[nodos_visitados[len(nodos_visitados)-1]][nodos_visitados[0]]
+      nodos_visitados.append(nodos_visitados[0])
+      
    
    return nodos_visitados, costo_viaje
    
@@ -107,8 +111,8 @@ def bl_swap(recorrido, costo_viaje, matriz):
    mejor=(recorrido,costo_viaje)
    n = len(recorrido)
 
-   for i in range(n-1):
-      for j in range(i+1,n):
+   for i in range(1,n-1): #El ultimo no lo cuento y al primeero tampoco. 
+      for j in range(i+1,n-1): 
          if(es_posible(i,j,recorrido,matriz)):
             posible_recorrido=recorrido.copy()
             
@@ -136,15 +140,6 @@ def bl_swap(recorrido, costo_viaje, matriz):
                costo_viaje_nuevo += matriz[posible_recorrido[j-1]][posible_recorrido[j]]
             if j < n - 1:
                costo_viaje_nuevo += matriz[posible_recorrido[j]][posible_recorrido[j+1]]
-
-         
-            ''' # Resta los costos de los caminos viejos
-            costo_viaje_viejos=costo_viaje - matriz[posible_recorrido[i-1]][i]-matriz[i][posible_recorrido[i+1]] -matriz[posible_recorrido[j-1]][j]-matriz[j][posible_recorrido[j+1]]
-            # Intercambian los elementos
-            posible_recorrido[i], posible_recorrido[j] = posible_recorrido[j], posible_recorrido[i]
-            # Sumar los costos de los nuevos caminos
-            costo_viaje_nuevo=costo_viaje_viejos + matriz[posible_recorrido[i-1]][i]+matriz[i][posible_recorrido[i+1]] +matriz[posible_recorrido[j-1]][j]+matriz[j][posible_recorrido[j+1]]
-            '''
 
             # Actualizar el mejor resultado si el nuevo costo es menor
             if(costo_viaje_nuevo<mejor[1]):
