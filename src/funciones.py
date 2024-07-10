@@ -90,6 +90,7 @@ agm(grafo)
 #############Swap
 
 def es_posible(i,j, recorrido, matriz):
+      '''
       #Caso general
       if(i!=0 and j!=len(recorrido)-1 and 0!=matriz[recorrido[i-1]][j] and 0!=matriz[j][recorrido[i+1]] and  0!=matriz[recorrido[j-1]][i] and 0!=matriz[i][recorrido[j+1]]):
          return True
@@ -99,10 +100,12 @@ def es_posible(i,j, recorrido, matriz):
       
       if(i==0 and j==len(recorrido)-1 and 0!=matriz[j][recorrido[i+1]] and  0!=matriz[recorrido[j-1]][i]):
          return True
-      
+
       if(i!=0 and j==len(recorrido)-1 and 0!=matriz[recorrido[i-1]][j] and 0!=matriz[j][recorrido[i+1]] and  0!=matriz[recorrido[j-1]][i]):
          return True
-
+      '''
+      if(0!=matriz[recorrido[i-1]][j] and 0!=matriz[j][recorrido[i+1]] and  0!=matriz[recorrido[j-1]][i] and 0!=matriz[i][recorrido[j+1]]):
+         return True
       else:
          return False
       
@@ -111,7 +114,7 @@ def bl_swap(recorrido, costo_viaje, matriz):
    mejor=(recorrido,costo_viaje)
    n = len(recorrido)
 
-   for i in range(1,n-1): #El ultimo no lo cuento y al primeero tampoco. 
+   for i in range(1,n-2): #La primer ciudad no se swapea
       for j in range(i+1,n-1): 
          if(es_posible(i,j,recorrido,matriz)):
             posible_recorrido=recorrido.copy()
