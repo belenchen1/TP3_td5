@@ -49,11 +49,12 @@ def vecino_mas_cercano(matriz):
       nodos_visitados.append(min[0])
       nodo_0 = min[0]
       costo_viaje += min[1]
-      
-      costo_viaje += matriz[nodos_visitados[len(nodos_visitados)-1]][nodos_visitados[0]]
-      nodos_visitados.append(nodos_visitados[0])
-      
+   #Agrego la ult ciudad que es la misma que la primera  y el costo de la ante ultima a la primera
+   nodos_visitados.append(nodos_visitados[0])
    
+   n=len(nodos_visitados)
+   valor=matriz[nodos_visitados[n-2]][nodos_visitados[0]]
+   costo_viaje += valor
    return nodos_visitados, costo_viaje
    
 nodos_visitados, costo_viaje=vecino_mas_cercano(grafo)
@@ -114,40 +115,34 @@ def bl_swap(recorrido, costo_viaje, matriz):
    mejor=(recorrido,costo_viaje)
    n = len(recorrido)
 
-   for i in range(1,n-2): #La primer ciudad no se swapea
+   for i in range(1,n-2): #La primer ciudad no se swapea y la ultima tampoco
       for j in range(i+1,n-1): 
+         print(i,j)
+         costo_viaje_viejos=costo_viaje
          if(es_posible(i,j,recorrido,matriz)):
             posible_recorrido=recorrido.copy()
             
-          # Resta los costos de los caminos viejos
-            costo_viaje_viejos = costo_viaje
-            if i > 0:
-               costo_viaje_viejos -= matriz[posible_recorrido[i-1]][posible_recorrido[i]]
-            if i < n - 1:
-               costo_viaje_viejos -= matriz[posible_recorrido[i]][posible_recorrido[i+1]]
-            if j > 0:
-               costo_viaje_viejos -= matriz[posible_recorrido[j-1]][posible_recorrido[j]]
-            if j < n - 1:
-               costo_viaje_viejos -= matriz[posible_recorrido[j]][posible_recorrido[j+1]]
+            if(abs(i-j)==1): #Caso donde i e j son contiguos. 
+               costo_viaje_viejos=costo_viaje_viejos-matriz[posible_recorrido[i-1]][posible_recorrido[i]]-matriz[posible_recorrido[j]][posible_recorrido[j+1]]- matriz[posible_recorrido[i]][posible_recorrido[i+1]]
+               posible_recorrido[i], posible_recorrido[j] = posible_recorrido[j], posible_recorrido[i]
+               costo_viaje_nuevo = costo_viaje_viejos+ matriz[posible_recorrido[i-1]][posible_recorrido[i]]+ matriz[posible_recorrido[i]][posible_recorrido[i+1]]+ matriz[posible_recorrido[j]][posible_recorrido[j+1]]
+
+               
+            # Resta los costos de los caminos viejos
+            else:
+               costo_viaje_viejos=costo_viaje_viejos-matriz[posible_recorrido[i-1]][posible_recorrido[i]]- matriz[posible_recorrido[i]][posible_recorrido[i+1]]-matriz[posible_recorrido[j-1]][posible_recorrido[j]]-matriz[posible_recorrido[j]][posible_recorrido[j+1]]
                 
-            # Intercambiar los elementos
-            posible_recorrido[i], posible_recorrido[j] = posible_recorrido[j], posible_recorrido[i]
+               # Intercambiar los elementos
+               posible_recorrido[i], posible_recorrido[j] = posible_recorrido[j], posible_recorrido[i]
                 
-            # Sumar los costos de los nuevos caminos
-            costo_viaje_nuevo = costo_viaje_viejos
-            if i > 0:
-               costo_viaje_nuevo += matriz[posible_recorrido[i-1]][posible_recorrido[i]]
-            if i < n - 1:
-               costo_viaje_nuevo += matriz[posible_recorrido[i]][posible_recorrido[i+1]]
-            if j > 0:
-               costo_viaje_nuevo += matriz[posible_recorrido[j-1]][posible_recorrido[j]]
-            if j < n - 1:
-               costo_viaje_nuevo += matriz[posible_recorrido[j]][posible_recorrido[j+1]]
+               # Sumar los costos de los nuevos caminos
+               costo_viaje_nuevo = costo_viaje_viejos+ matriz[posible_recorrido[i-1]][posible_recorrido[i]]+ matriz[posible_recorrido[i]][posible_recorrido[i+1]]+matriz[posible_recorrido[j-1]][posible_recorrido[j]]+ matriz[posible_recorrido[j]][posible_recorrido[j+1]]
 
             # Actualizar el mejor resultado si el nuevo costo es menor
             if(costo_viaje_nuevo<mejor[1]):
                mejor=(posible_recorrido,costo_viaje_nuevo)
-      
+   
+   
    return mejor
             
 print(bl_swap(nodos_visitados, costo_viaje,grafo))
