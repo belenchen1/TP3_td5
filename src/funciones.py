@@ -29,7 +29,7 @@ def matriz_init(filepath):
 filepath = './br17.atsp'
 grafo = matriz_init(filepath)
 
-print(grafo)
+#print(grafo)
 print("Forma de la matriz:", grafo.shape)
 
 
@@ -50,11 +50,13 @@ def vecino_mas_cercano(matriz):
       nodo_0 = min[0]
       costo_viaje += min[1]
    
-   print(nodos_visitados, costo_viaje)
+   return nodos_visitados, costo_viaje
    
-vecino_mas_cercano(grafo)
+nodos_visitados, costo_viaje=vecino_mas_cercano(grafo)
+print(nodos_visitados, costo_viaje)
+print("______________________")
 
-
+'''
 def agm(matrix_np):
    # traduccion de matriz a grafo de nx
    g = nx.DiGraph()
@@ -78,3 +80,76 @@ def agm(matrix_np):
    
 agm(grafo)
 
+'''
+#########################Operadores de busqueda local
+
+#############Swap
+
+def es_posible(i,j, recorrido, matriz):
+      #Caso general
+      if(i!=0 and j!=len(recorrido)-1 and 0!=matriz[recorrido[i-1]][j] and 0!=matriz[j][recorrido[i+1]] and  0!=matriz[recorrido[j-1]][i] and 0!=matriz[i][recorrido[j+1]]):
+         return True
+      #Casos borde
+      if(i==0 and j!=len(recorrido)-1 and 0!=matriz[j][recorrido[i+1]] and  0!=matriz[recorrido[j-1]][i] and 0!=matriz[i][recorrido[j+1]]):
+         return True
+      
+      if(i==0 and j==len(recorrido)-1 and 0!=matriz[j][recorrido[i+1]] and  0!=matriz[recorrido[j-1]][i]):
+         return True
+      
+      if(i!=0 and j==len(recorrido)-1 and 0!=matriz[recorrido[i-1]][j] and 0!=matriz[j][recorrido[i+1]] and  0!=matriz[recorrido[j-1]][i]):
+         return True
+
+      else:
+         return False
+      
+   
+def bl_swap(recorrido, costo_viaje, matriz):
+   mejor=(recorrido,costo_viaje)
+   n = len(recorrido)
+
+   for i in range(n-1):
+      for j in range(i+1,n):
+         if(es_posible(i,j,recorrido,matriz)):
+            posible_recorrido=recorrido.copy()
+            
+          # Resta los costos de los caminos viejos
+            costo_viaje_viejos = costo_viaje
+            if i > 0:
+               costo_viaje_viejos -= matriz[posible_recorrido[i-1]][posible_recorrido[i]]
+            if i < n - 1:
+               costo_viaje_viejos -= matriz[posible_recorrido[i]][posible_recorrido[i+1]]
+            if j > 0:
+               costo_viaje_viejos -= matriz[posible_recorrido[j-1]][posible_recorrido[j]]
+            if j < n - 1:
+               costo_viaje_viejos -= matriz[posible_recorrido[j]][posible_recorrido[j+1]]
+                
+            # Intercambiar los elementos
+            posible_recorrido[i], posible_recorrido[j] = posible_recorrido[j], posible_recorrido[i]
+                
+            # Sumar los costos de los nuevos caminos
+            costo_viaje_nuevo = costo_viaje_viejos
+            if i > 0:
+               costo_viaje_nuevo += matriz[posible_recorrido[i-1]][posible_recorrido[i]]
+            if i < n - 1:
+               costo_viaje_nuevo += matriz[posible_recorrido[i]][posible_recorrido[i+1]]
+            if j > 0:
+               costo_viaje_nuevo += matriz[posible_recorrido[j-1]][posible_recorrido[j]]
+            if j < n - 1:
+               costo_viaje_nuevo += matriz[posible_recorrido[j]][posible_recorrido[j+1]]
+
+         
+            ''' # Resta los costos de los caminos viejos
+            costo_viaje_viejos=costo_viaje - matriz[posible_recorrido[i-1]][i]-matriz[i][posible_recorrido[i+1]] -matriz[posible_recorrido[j-1]][j]-matriz[j][posible_recorrido[j+1]]
+            # Intercambian los elementos
+            posible_recorrido[i], posible_recorrido[j] = posible_recorrido[j], posible_recorrido[i]
+            # Sumar los costos de los nuevos caminos
+            costo_viaje_nuevo=costo_viaje_viejos + matriz[posible_recorrido[i-1]][i]+matriz[i][posible_recorrido[i+1]] +matriz[posible_recorrido[j-1]][j]+matriz[j][posible_recorrido[j+1]]
+            '''
+
+            # Actualizar el mejor resultado si el nuevo costo es menor
+            if(costo_viaje_nuevo<mejor[1]):
+               mejor=(posible_recorrido,costo_viaje_nuevo)
+      
+   return mejor
+            
+print(bl_swap(nodos_visitados, costo_viaje,grafo))
