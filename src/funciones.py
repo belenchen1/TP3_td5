@@ -39,22 +39,33 @@ def vecino_mas_cercano(matriz):
    nodo_0 = random.randint(0, matriz.shape[0]-1)
    nodos_visitados = [nodo_0]
    costo_viaje = 0
+   print(matriz)
    
    while len(nodos_visitados) < matriz.shape[0]:
       min = (float('inf'), float('inf')) # nodo mas cercano, dist
+      
       for i in range(matriz.shape[0]):
          dist_actual = matriz[nodo_0][i]
          if (dist_actual < min[1]) and (i not in nodos_visitados) and (dist_actual != 0):
             min = (i, dist_actual)
+            print(min[0]=='inf')
+            print(min, dist_actual )
+      
+
       nodos_visitados.append(min[0])
+      print(nodos_visitados)
       nodo_0 = min[0]
       costo_viaje += min[1]
+      
    #Agrego la ult ciudad que es la misma que la primera  y el costo de la ante ultima a la primera
    nodos_visitados.append(nodos_visitados[0])
-   
    n=len(nodos_visitados)
+   print(nodos_visitados[n-2])
+   print(nodos_visitados[0])
+   print(matriz[nodos_visitados[n-2]][nodos_visitados[0]])
    valor=matriz[nodos_visitados[n-2]][nodos_visitados[0]]
    costo_viaje += valor
+   
    return nodos_visitados, costo_viaje
    
 nodos_visitados, costo_viaje=vecino_mas_cercano(grafo)
@@ -91,25 +102,14 @@ agm(grafo)
 #############Swap
 
 def es_posible(i,j, recorrido, matriz):
-      '''
-      #Caso general
-      if(i!=0 and j!=len(recorrido)-1 and 0!=matriz[recorrido[i-1]][j] and 0!=matriz[j][recorrido[i+1]] and  0!=matriz[recorrido[j-1]][i] and 0!=matriz[i][recorrido[j+1]]):
-         return True
-      #Casos borde
-      if(i==0 and j!=len(recorrido)-1 and 0!=matriz[j][recorrido[i+1]] and  0!=matriz[recorrido[j-1]][i] and 0!=matriz[i][recorrido[j+1]]):
+      if(abs(i-j)==1 and 0!=matriz[recorrido[i-1]][recorrido[j]] and 0!=matriz[recorrido[i]][recorrido[j+1]]):
+            return True
+         
+      if(0!=matriz[recorrido[i-1]][recorrido[j]] and 0!=matriz[recorrido[j]][recorrido[i+1]] and  0!=matriz[recorrido[j-1]][recorrido[i]] and 0!=matriz[recorrido[i]][recorrido[j+1]]):
          return True
       
-      if(i==0 and j==len(recorrido)-1 and 0!=matriz[j][recorrido[i+1]] and  0!=matriz[recorrido[j-1]][i]):
-         return True
-
-      if(i!=0 and j==len(recorrido)-1 and 0!=matriz[recorrido[i-1]][j] and 0!=matriz[j][recorrido[i+1]] and  0!=matriz[recorrido[j-1]][i]):
-         return True
-      '''
-      if(0!=matriz[recorrido[i-1]][j] and 0!=matriz[j][recorrido[i+1]] and  0!=matriz[recorrido[j-1]][i] and 0!=matriz[i][recorrido[j+1]]):
-         return True
       else:
          return False
-      
    
 def bl_swap(recorrido, costo_viaje, matriz):
    mejor=(recorrido,costo_viaje)
@@ -117,17 +117,14 @@ def bl_swap(recorrido, costo_viaje, matriz):
 
    for i in range(1,n-2): #La primer ciudad no se swapea y la ultima tampoco
       for j in range(i+1,n-1): 
-         print(i,j)
          costo_viaje_viejos=costo_viaje
          if(es_posible(i,j,recorrido,matriz)):
             posible_recorrido=recorrido.copy()
-            
             if(abs(i-j)==1): #Caso donde i e j son contiguos. 
                costo_viaje_viejos=costo_viaje_viejos-matriz[posible_recorrido[i-1]][posible_recorrido[i]]-matriz[posible_recorrido[j]][posible_recorrido[j+1]]- matriz[posible_recorrido[i]][posible_recorrido[i+1]]
                posible_recorrido[i], posible_recorrido[j] = posible_recorrido[j], posible_recorrido[i]
                costo_viaje_nuevo = costo_viaje_viejos+ matriz[posible_recorrido[i-1]][posible_recorrido[i]]+ matriz[posible_recorrido[i]][posible_recorrido[i+1]]+ matriz[posible_recorrido[j]][posible_recorrido[j+1]]
 
-               
             # Resta los costos de los caminos viejos
             else:
                costo_viaje_viejos=costo_viaje_viejos-matriz[posible_recorrido[i-1]][posible_recorrido[i]]- matriz[posible_recorrido[i]][posible_recorrido[i+1]]-matriz[posible_recorrido[j-1]][posible_recorrido[j]]-matriz[posible_recorrido[j]][posible_recorrido[j+1]]
@@ -144,5 +141,16 @@ def bl_swap(recorrido, costo_viaje, matriz):
    
    
    return mejor
-            
-print(bl_swap(nodos_visitados, costo_viaje,grafo))
+
+def recorrer_vecindarios(recorrido, costo_viaje, matriz):
+    mejor = (recorrido, costo_viaje)
+    while True:
+        nuevo_mejor = bl_swap(mejor[0], mejor[1], matriz)
+        if nuevo_mejor[1] >= mejor[1]:  # No hubo mejora
+            break
+        mejor = nuevo_mejor
+    return mejor
+   
+
+
+print(recorrer_vecindarios(nodos_visitados, costo_viaje,grafo))
