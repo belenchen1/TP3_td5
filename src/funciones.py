@@ -25,79 +25,161 @@ def matriz_init(filepath):
 
    return matrix_np
 
-
 filepath = './br17.atsp'
 grafo = matriz_init(filepath)
 
 #print(grafo)
 print("Forma de la matriz:", grafo.shape)
 
-
 # HEURISTICA 1: algoritmo goloso: vecino mas cercano
-
 def vecino_mas_cercano(matriz):
-   nodo_0 = random.randint(0, matriz.shape[0]-1)
-   nodos_visitados = [nodo_0]
-   costo_viaje = 0
-   print(matriz)
+   '''Hay veces que el camino que construye no es valido. Por eso hacemos el ciclo externo sirve para comenzar de nuevo opciones de caminos
    
-   while len(nodos_visitados) < matriz.shape[0]:
-      min = (float('inf'), float('inf')) # nodo mas cercano, dist
-      
-      for i in range(matriz.shape[0]):
-         dist_actual = matriz[nodo_0][i]
-         if (dist_actual < min[1]) and (i not in nodos_visitados) and (dist_actual != 0):
-            min = (i, dist_actual)
-            print(min[0]=='inf')
-            print(min, dist_actual )
-      
+   Complejidad total:  O(N**2)
+      O (1) (ciclo externo)
+         O(n) (ciclo interno) n: cantidad de ciudades o nodos
+            o(n) la comparacion de (for i in range(matriz.shape[0])) 
+   
+   
+   '''
+   intentos = 10  # Número de intentos antes de rendirse
+   while intentos > 0: #o(1), se ejecuta max 10 veces y todo lo que esta dentro del ciclo es #o(1)
+      nodo_0 = random.randint(0, matriz.shape[0]-1)  
+      nodos_visitados = [nodo_0] 
+      costo_viaje = 0 
+      camino_valido = True
 
-      nodos_visitados.append(min[0])
-      print(nodos_visitados)
-      nodo_0 = min[0]
-      costo_viaje += min[1]
-      
-   #Agrego la ult ciudad que es la misma que la primera  y el costo de la ante ultima a la primera
-   nodos_visitados.append(nodos_visitados[0])
-   n=len(nodos_visitados)
-   print(nodos_visitados[n-2])
-   print(nodos_visitados[0])
-   print(matriz[nodos_visitados[n-2]][nodos_visitados[0]])
-   valor=matriz[nodos_visitados[n-2]][nodos_visitados[0]]
-   costo_viaje += valor
-   
-   return nodos_visitados, costo_viaje
-   
-nodos_visitados, costo_viaje=vecino_mas_cercano(grafo)
-print(nodos_visitados, costo_viaje)
-print("______________________")
+      while len(nodos_visitados) < matriz.shape[0]: #o(n: cantidad de ciudades)
+         min = (float('inf'), float('inf'))  # nodo más cercano, distancia
+
+         for i in range(matriz.shape[0]): #o(v: cantidad de ciudades visitadas, a lo sumo son todas!! esta acotado)
+            dist_actual = matriz[nodo_0][i]
+            if (dist_actual < min[1]) and (i not in nodos_visitados) and (dist_actual != 0): 
+               min = (i, dist_actual)
+
+         if min[0] == float('inf'):
+            camino_valido = False
+            break
+         
+         #Se agrega al nodo mas cercano, y se actualiza el costo
+         nodos_visitados.append(min[0])
+         nodo_0 = min[0]
+         costo_viaje += min[1]
+
+      #Se construyo un camino valido
+      if camino_valido:
+         # Agregar la última ciudad que es la misma que la primera y el costo de la anteúltima a la primera
+         nodos_visitados.append(nodos_visitados[0])
+         valor = matriz[nodos_visitados[-2]][nodos_visitados[0]]
+         costo_viaje += valor
+         return nodos_visitados, costo_viaje
+        
+      else:
+         print("Error: No se construyó un camino válido. Intentando de nuevo...")
+         intentos -= 1
+
+   print("Error: No se pudo encontrar un camino válido después de varios intentos.")
+   return None, float('inf')
 
 '''
-def agm(matrix_np):
-   # traduccion de matriz a grafo de nx
-   g = nx.DiGraph()
-   n = matrix_np.shape[0]
-   g.add_nodes_from(range(n))
-   for i in range(n):
-      for j in range(n):
-         if i!=j:
-            if matrix_np[i, j] != 0:
-               g.add_edge(i, j, weight=matrix_np[i, j])
+nodos_visitados, costo_viaje=vecino_mas_cercano(grafo)
+print("Con la heuristica golosa estos son los nodos visitados y el costo: ")
+print(nodos_visitados, costo_viaje)
+print("______________________")
+'''
+# HEURISTICA 2: algoritmo goloso: vecino mas cercano de todos los que componen el camino
+def vecino_mas_cercano_de_todos(matriz):
+   n=matriz.shape[0]
+   nodo_0 = random.randint(0, n-1)
+   nodo_1 = random.randint(0, n-1)
    
-   # Calcular el AGM usando Kruskal
-   tree = nx.minimum_spanning_edges(g, algorithm='kruskal', data=True)
-
-   # Crear un nuevo grafo para el MST
-   k = nx.Graph()
-   k.add_edges_from(tree)
-
-   # Verificar el MST creado
-   print("Aristas del MST:", k.edges(data=True))
+   while nodo_1 == nodo_0 or matriz[nodo_0][nodo_1] == 0 or matriz[nodo_1][nodo_0]==0:
+        nodo_1 = random.randint(0, n-1)
+        
    
-agm(grafo)
+   nodos_visitados = [nodo_0,nodo_1,nodo_0]
+   costo_viaje = matriz[nodo_0][nodo_1] + matriz[nodo_1][nodo_0]
+
+   nodos_no_visitados = [i for i in range(matriz.shape[0]) if i not in nodos_visitados]
+   while len(nodos_visitados) < n+1:
+      min = (float('inf'), None)  # distancia, (la ciudad, la ciudad y la nueva proxima ciudad)
+      
+      for i in range(len(nodos_visitados)-1): #o(v) , no considero cambiar la primer ciudad que esta ubicada al final
+         for j in nodos_no_visitados:
+            pri_ciudad=nodos_visitados[i]
+            seg_ciudad = nodos_visitados[i + 1]
+            
+            if (matriz[pri_ciudad][j] != 0 and matriz[j][seg_ciudad] != 0):
+               posible_costo=costo_viaje+matriz[pri_ciudad][j] + matriz[j][seg_ciudad]-matriz[pri_ciudad][seg_ciudad]
+
+               if( posible_costo<min[0]):
+                  min = (posible_costo, (pri_ciudad,j))
+   
+      #Hago el cambio si hay una tupla valida
+      if(min[0]!=float('inf')):
+         ciudades=min[1]
+         pri_ciudad=ciudades[0]
+         nueva_ciudad=ciudades[1]
+         seg_ciudad=nodos_visitados[nodos_visitados.index(pri_ciudad)+1]
+
+         costo_viaje-=matriz[pri_ciudad][seg_ciudad]
+         costo_viaje+=matriz[pri_ciudad][nueva_ciudad] +matriz[nueva_ciudad][seg_ciudad]
+         
+         nodos_visitados.insert(nodos_visitados.index(pri_ciudad)+1, nueva_ciudad)
+         nodos_no_visitados.remove(nueva_ciudad)
+
+      
+      else: 
+            print("Error: No se pudo construir un camino válido.")
+            return None, float('inf')
+      
+   return nodos_visitados,costo_viaje
+'''
+camino, costo = vecino_mas_cercano_de_todos(grafo)
+print(camino,costo)
 
 '''
 #########################Operadores de busqueda local
+#############Relocate
+def es_posible_relocate(i, j, recorrido, matriz):
+    # Verificar que la nueva posición no genere un recorrido inválido
+    if i < j:
+        if 0 != matriz[recorrido[i-1]][recorrido[i+1]] and 0 != matriz[recorrido[j]][recorrido[i]] and 0 != matriz[recorrido[i]][recorrido[j+1]]:
+            return True
+    elif i > j:
+        if 0 != matriz[recorrido[i-1]][recorrido[i+1]] and 0 != matriz[recorrido[j-1]][recorrido[i]] and 0 != matriz[recorrido[i]][recorrido[j]]:
+            return True
+    return False
+
+def bl_relocate(recorrido, costo_viaje, matriz):
+    mejor = (recorrido, costo_viaje)
+    n = len(recorrido)
+    
+    for i in range(1, n-1): # La primer ciudad no se mueve y la última tampoco
+        for j in range(1, n-1): 
+            if i != j and es_posible_relocate(i, j, recorrido, matriz):
+                posible_recorrido = recorrido.copy()
+                
+                if i < j:
+                    ciudad = posible_recorrido.pop(i)
+                    posible_recorrido.insert(j, ciudad)
+                else:
+                    ciudad = posible_recorrido.pop(i)
+                    posible_recorrido.insert(j, ciudad)
+                
+                costo_viaje_nuevo = 0
+                for k in range(n-1):
+                    costo_viaje_nuevo += matriz[posible_recorrido[k]][posible_recorrido[k+1]]
+                
+                if costo_viaje_nuevo < mejor[1]:
+                    mejor = (posible_recorrido, costo_viaje_nuevo)
+    
+    return mejor
+camino, costo = vecino_mas_cercano_de_todos(grafo)
+print(camino, costo)
+print('////////////')
+print(bl_relocate(camino, costo,grafo))
+
 
 #############Swap
 
@@ -151,6 +233,6 @@ def recorrer_vecindarios(recorrido, costo_viaje, matriz):
         mejor = nuevo_mejor
     return mejor
    
-
-
+'''
 print(recorrer_vecindarios(nodos_visitados, costo_viaje,grafo))
+'''
